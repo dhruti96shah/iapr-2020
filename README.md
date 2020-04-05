@@ -9,6 +9,7 @@
 * Lecturer: [Jean-Philippe Thiran][jpt]
 * [EE-451 coursebook][coursebook]
 
+[jpt]: https://people.epfl.ch/115534
 [Mahdi]: https://www.linkedin.com/in/mahdi-nobar/?originalSubdomain=ch
 [coursebook]: https://edu.epfl.ch/coursebook/en/image-analysis-and-pattern-recognition-EE-451
 
