@@ -19,8 +19,7 @@ These concepts will be illustrated by applications in computer vision and
 medical image analysis.
 
 ### Objective of this repository
-This repository is for the lab and project development of [_Image Analysis and Pattern Recognition_][edu] course (EE-451 2020) at _EPFL_.
-[EE-451 Image Analysis and Pattern Recognition][edu].
+This repository is for the lab and project development of _Image Analysis and Pattern Recognition_ course (EE-451 2020) at _EPFL_.
 
 ## Installation instructions
 
