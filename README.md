@@ -1,9 +1,9 @@
 # Image Analysis and Pattern Recognition
 
 ## Developers
-*[__Mahdi Nobar__][Mahdi]
-*__Dhruti Shah__
-*__Zahra Farsijani__
+* [__Mahdi Nobar__][Mahdi]
+* __Dhruti Shah__
+* __Zahra Farsijani__
 
 ## Course information
 * Lecturer: [Jean-Philippe Thiran][jpt]
