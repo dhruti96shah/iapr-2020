@@ -1,12 +1,16 @@
 # Image Analysis and Pattern Recognition
 
-## General information
+## Developers
+* [Mahdi Nobar][Mahdi]
+* Dhruti Shah
+* Zahra Farsijani
+
+## Course information
 * Lecturer: [Jean-Philippe Thiran][jpt]
 * [EE-451 coursebook][coursebook]
-* [Moodle]
 
-[moodle]: https://moodle.epfl.ch/course/view.php?id=5091
 [jpt]: https://people.epfl.ch/115534
+[Mahdi]: https://www.linkedin.com/in/mahdi-nobar/?originalSubdomain=ch
 [coursebook]: https://edu.epfl.ch/coursebook/en/image-analysis-and-pattern-recognition-EE-451
 
 ### Objective of this course
@@ -16,25 +20,7 @@ These concepts will be illustrated by applications in computer vision and
 medical image analysis.
 
 ### Objective of this repository
-This repository contains the material for the labs and project associated with
-the [EPFL] master course
-[EE-451 Image Analysis and Pattern Recognition][edu].
-
-Please find below the list of material accessible from this repository:
-1. [Installation instructions](#installation-instructions)
-1. [Basic image processing tutorial][t01]
-1. [Lab 1: image segmentation][l01]
-1. [Lab 2: object description][l02] (coming soon)
-1. [Lab 3: classification][l03] (coming soon)
-1. [Project description][project-descr] (coming soon)
-
-[epfl]: https://www.epfl.ch/
-[edu]: https://edu.epfl.ch/coursebook/en/image-analysis-and-pattern-recognition-EE-451
-[t01]: tutorials/tuto_01_basic_img_proc.ipynb
-[l01]: labs/lab_01_segmentation.ipynb
-[l02]: labs/lab_02_object_description.ipynb
-[l03]: labs/lab_03_classification.ipynb
-[project-descr]: project/project_description.md
+This repository is for the lab and project development of _Image Analysis and Pattern Recognition_ course (EE-451 2020) at _EPFL_.
 
 ## Installation instructions
 
@@ -69,7 +55,7 @@ for the course:
    * Linux/macOS: `pip install --upgrade -r requirements.txt`
    * Windows: `conda install --file requirements.txt`
 1. You can deactivate the environment whenever you are done with `deactivate`
-   
+
 [git]: https://git-scm.com
 [python]: https://www.python.org
 [scipy]: https://www.scipy.org
