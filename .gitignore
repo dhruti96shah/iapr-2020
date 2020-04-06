@@ -1,2 +1,4 @@
 .idea/
 labs/.ipynb_checkpoints/
+.gitignore
+data/
