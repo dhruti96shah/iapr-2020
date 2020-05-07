@@ -39,7 +39,7 @@ def operator_classify(inp_img):
 		dist[i] = mean_squared_error(inp_moment,moments[i,:])
 	min_index = np.argmin(dist)
 
-	return dict_[min_index]
+	return dict_[min_index], dist[min_index]
 
 if __name__ == '__main__':
 	test_dir = 'data/test_operators/'

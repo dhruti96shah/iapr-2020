@@ -1,5 +1,6 @@
 import argparse
 from localization import *
+from operator_classification import *
 import numpy as np
 
 
@@ -17,6 +18,7 @@ def main(args):
     cap = cv2.VideoCapture('robot_parcours_1.avi')
     t = 0
     eqn = ""
+    digit_or_op = True
     while(cap.isOpened()):
     	ret, _frame = cap.read()
     	if ret==False: #if video is over
@@ -29,9 +31,22 @@ def main(args):
     	y_min = max(arrow_loc[1]-40,0)
     	y_max = min(arrow_loc[1]+40, first_frame.shape[1])
     	img = first_frame[x_min:x_max,y_min:y_max]
+    	#if digit_or_op:
+    		#pass image to cnn and get the prediction
+    		#append to equation
+    		# if digit detected, set digit_or_op = False
+    	#else:
+    		#pass image to op classifier
+    		# append to equation
+    		# if operator detected set digit_or_op = True
+    		# if operator == 'eq': break
     	
+    	op, loss = operator_classify(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+    	if loss<1.5e-10:
+    		print(op,' ' ,loss)
+
     	cv2.imshow('frame',img)
-    	cv2.waitKey(500)
+    	cv2.waitKey(1000)
     	t+=1
     pass
 
