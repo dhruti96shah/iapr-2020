@@ -7,13 +7,16 @@ from skimage.morphology import disk, closing
 
 def tip_tracking():
 
-    cap = cv2.VideoCapture('/home/mahdi/IAPR/iapr-2020/data/project_data/robot_parcours_1.avi')
+    arrow_tip_locations = []
+    cap = cv2.VideoCapture('robot_parcours_1.avi')
 
     k = 0
     while(cap.isOpened()):
         if cv2.waitKey(100) & 0xFF == ord('q'):
             break
         ret, _frame = cap.read()
+        if ret==False:
+            break
         k += 1
         frame = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
         frame2=frame.astype('float')
@@ -33,18 +36,19 @@ def tip_tracking():
 
         frame3 *= 0
         frame3[argoman[:, 0], argoman[:, 1]] = 1
-        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-        ax.imshow(frame3, cmap='gray')
+        #fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        #ax.imshow(frame3, cmap='gray')
 
         from sklearn.decomposition import PCA
         pca = PCA(n_components=1)
         pca.fit(argoman)
         arrow = pca.transform(argoman)
         arg_tip_arrow = argoman[np.argmin(arrow), :]
+        arrow_tip_locations.append(arg_tip_arrow)
         # frame3[arg_tip_arrow[0], arg_tip_arrow[1]]=
-        ax.scatter(arg_tip_arrow[1], arg_tip_arrow[0], marker="*", s=100, c='lime')
+        #ax.scatter(arg_tip_arrow[1], arg_tip_arrow[0], marker="*", s=100, c='lime')
 
-        plt.show()
+        #plt.show()
 
 
         # Write some Text
@@ -60,7 +64,9 @@ def tip_tracking():
                     fontColor,
                     lineType)
 
-        cv2.imshow('frame', _frame)
+        #cv2.imshow('frame', _frame)
+
+    return arrow_tip_locations
 
 
 
