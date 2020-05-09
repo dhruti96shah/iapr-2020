@@ -70,6 +70,97 @@ def tip_tracking():
 
 
 
+def tip_tracking_2():
+
+    arrow_tip_locations = []
+    cap = cv2.VideoCapture('/home/mahdi/IAPR/iapr-2020/data/project_data/robot_parcours_1.avi')
+
+    k = 0
+    while(cap.isOpened()):
+        if cv2.waitKey(100) & 0xFF == ord('q'):
+            break
+        ret, _frame = cap.read()
+        if ret==False:
+            break
+        k += 1
+        frame = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
+        frame2=frame.astype('float')
+
+        frame3 = (frame2[:, :, 0] - frame2[:, :, 1]) + (frame2[:, :, 0] - frame2[:, :, 2])
+        argoman=np.transpose(np.asarray(np.unravel_index(np.argsort(frame3, axis=None)[::-1], frame3.shape))[:, :2000]) #pick 2000 points
+
+        #  remove pixel outliers
+        mean = np.mean(argoman, axis=0)
+        standard_deviation = np.std(argoman, axis=0)
+        distance_from_mean = abs(argoman - mean)
+        max_deviations = 2
+        not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
+        argoman = argoman[not_color_outlier]
+
+        argoman2 = np.copy(argoman)
+        argoman3 = np.copy(argoman)
+
+
+        frame3 *= 0
+        frame3[argoman[:, 0], argoman[:, 1]] = 1
+        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        ax.imshow(frame3, cmap='gray')
+
+        from sklearn.decomposition import PCA
+        pca = PCA(n_components=1)
+        pca.fit(argoman)
+        arrow = pca.transform(argoman)
+        arg_tip_arrow = argoman[np.argmin(arrow), :]
+        arrow_tip_locations.append(arg_tip_arrow)
+        ax.scatter(arg_tip_arrow[1], arg_tip_arrow[0], marker="*", s=100, c='lime')
+
+        pca2 = PCA(n_components=2)
+        pca2.fit(argoman2)
+        arrow2 = pca2.transform(argoman2)
+        arg_right_arrow = argoman2[np.argmin(arrow2[:,1]), :]
+        ax.scatter(arg_right_arrow[1], arg_right_arrow[0], marker="o", s=50, c='y')
+        arg_left_arrow = argoman2[np.argmax(arrow2[:,1]), :]
+        ax.scatter(arg_left_arrow[1], arg_left_arrow[0], marker="o", s=50, c='y')
+        # plt.show()
+
+        if k==1:
+            from numpy import linalg as LA
+            est_arrow_plate_width = LA.norm(arg_right_arrow-arg_left_arrow)
+
+
+        # Write some Text
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (5, 25)
+        fontScale = 0.45
+
+        fontColor = (255, 255, 255)
+        lineType = 1
+        cv2.putText(_frame, 'frame # = {}; tip arrow location = {}; estimated arrow plate width = {:d} [pxls]'.format(k, arg_tip_arrow, int(np.rint(est_arrow_plate_width))),
+                    bottomLeftCornerOfText,
+                    font,
+                    fontScale,
+                    fontColor,
+                    lineType)
+
+        # draw linear trajectory
+        if k > 1:
+            # start_point = tuple(np.flip(arrow_tip_locations[-1]))
+            # end_point = tuple(np.flip(arrow_tip_locations[-2]))
+            # Black color in BGR
+            color = (0, 100, 255)
+            # Line thickness of 5 px
+            thickness = 5
+            for kk in range (k, 1, -1):
+                _frame = cv2.line(_frame, tuple(np.flip(arrow_tip_locations[-kk+1])), tuple(np.flip(arrow_tip_locations[-kk])), color, thickness)
+
+
+        cv2.imshow('frame', _frame)
+        cv2.waitKey(0)
+
+    return arrow_tip_locations
+
+
+
 
 
 
@@ -82,4 +173,4 @@ def tip_tracking():
 
 if __name__ == '__main__':
     plt.close('all')
-    tip_tracking()
+    arrow_tip_locations = tip_tracking_2()
