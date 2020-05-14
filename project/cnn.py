@@ -61,6 +61,7 @@ def train(model,epoch,train_loader,params):
             torch.save(optimizer.state_dict(), './model_data/optimizer.pth')
     
 def test(model,test_loader):
+    test_losses = []
     model.eval()
     test_loss = 0
     correct = 0
@@ -100,19 +101,21 @@ def load_mnist(params):
     return train_loader, test_loader
 
 
-def predict (model,img,trans):
-    img_t = trans(img)
-    batch_t = torch.unsqueeze(img_t, 0)    
-    output = model(batch_t)
-    pred = output.data.max(1, keepdim=True)[1].item()
-    return pred
+def predict (model,img):
+    with torch.no_grad():  
+        trans = transforms.Compose([transforms.ToTensor()])
+        img_t = trans(img)
+        batch_t = torch.unsqueeze(img_t, 0)    
+        output = model(batch_t)
+        pred = output.data.max(1, keepdim=True)[1].item()
+        return pred
 
-def pred_digit(model,trans,img,training_flag):
+def pred_digit(img,training_flag):
     
     assert training_flag== False
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = np.expand_dims(img,axis=2) 
-    
+
     # set CNN parameters
     params = {
         'n_epochs': 10,
@@ -124,8 +127,10 @@ def pred_digit(model,trans,img,training_flag):
         'random_seed': 1,
         'mnist_path' : './data',
         'size' : 80} 
+    
     torch.backends.cudnn.enabled = False
     torch.manual_seed(params['random_seed'])
+    
     # train if needed
     if training_flag == True:
         # load mnist data for training
@@ -134,10 +139,10 @@ def pred_digit(model,trans,img,training_flag):
         for epoch in range(1, params['n_epochs'] + 1):
             train(model,epoch,train_loader,params)
             test(model, test_loader)
-     
+    model = Net()
+    #load trained CNN model
+    model.load_state_dict(torch.load("./model_data/model.pth"))
+    model.eval()
+    prediction = predict(model,img)
     
-    
-    prediction = predict(model,img,trans)
-    
-      
     return prediction

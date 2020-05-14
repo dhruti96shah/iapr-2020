@@ -15,11 +15,6 @@ def cli():
                         help='visualization')
 
 def main(args):
-    trans = transforms.Compose([transforms.ToTensor()])
-    model = Net()
-    #load trained CNN model
-    model.load_state_dict(torch.load("./model_data/model.pth"))
-    model.eval()
     arrow_locations = tip_tracking()
     cap = cv2.VideoCapture('robot_parcours_1.avi')
     t = 0
@@ -47,10 +42,10 @@ def main(args):
             # append to equation
             # if operator detected set digit_or_op = True
             # if operator == 'eq': break
-        training_flag = False
-        #with torch.no_grad():  
-        prediction = pred_digit(model,trans,img,training_flag)
+        training_flag = True
+        prediction = pred_digit(img,training_flag)
         print("Frame:"+ str(t) + " Predicted digit:"+ str(prediction))
+        break
         op, loss = operator_classify(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
         if loss<1.5e-10:
             print(op,' ' ,loss)
