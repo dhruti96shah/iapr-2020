@@ -19,7 +19,7 @@ class Net(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(92416, 128)
+        self.fc1 = nn.Linear(9216, 128)
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
@@ -57,8 +57,8 @@ def train(model,epoch,train_loader,params):
             train_losses.append(loss.item())
             train_counter.append(
             (batch_idx*64) + ((epoch-1)*len(train_loader.dataset)))
-            torch.save(model.state_dict(), './model_data/model.pth')
-            torch.save(optimizer.state_dict(), './model_data/optimizer.pth')
+            torch.save(model.state_dict(), './model.pth')
+            torch.save(optimizer.state_dict(), './optimizer.pth')
     
 def test(model,test_loader):
     test_losses = []
@@ -81,7 +81,7 @@ def test(model,test_loader):
 def load_mnist(params):
     train_loader = torch.utils.data.DataLoader(torchvision.datasets.MNIST(params['mnist_path'], train=True, download=True,
                              transform=torchvision.transforms.Compose([
-                                 torchvision.transforms.Resize(params['size']),
+#                                  torchvision.transforms.Resize(params['size']),
                                  torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
                               torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
                                torchvision.transforms.ToTensor(),
@@ -91,7 +91,7 @@ def load_mnist(params):
                
     test_loader = torch.utils.data.DataLoader( torchvision.datasets.MNIST(params['mnist_path'], train=False, download=True,
                              transform=torchvision.transforms.Compose([
-                                 torchvision.transforms.Resize(params['size']),
+#                                  torchvision.transforms.Resize(params['size']),
                                  torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
                               torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
                                torchvision.transforms.ToTensor(),
@@ -110,11 +110,11 @@ def predict (model,img):
         pred = output.data.max(1, keepdim=True)[1].item()
         return pred
 
-def pred_digit(img,training_flag):
+def pred_digit(img,model,training_flag):
     
     assert training_flag== False
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = np.expand_dims(img,axis=2) 
+    #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    #img = np.expand_dims(img,axis=2) 
 
     # set CNN parameters
     params = {
@@ -141,7 +141,7 @@ def pred_digit(img,training_flag):
             test(model, test_loader)
     model = Net()
     #load trained CNN model
-    model.load_state_dict(torch.load("./model_data/model.pth"))
+    model.load_state_dict(torch.load("./model.pth"))
     model.eval()
     prediction = predict(model,img)
     
