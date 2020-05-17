@@ -3,7 +3,7 @@ from localization import *
 from digit_classification import *
 from operator_classification import *
 import numpy as np
-from evaluate_equation import *
+from equation_evaluation import *
 
 import warnings
 
