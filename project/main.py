@@ -118,6 +118,7 @@ def main(args):
                     print(eqn + " " + str(res))
                     cv2.imshow('frame',_frame)
                     cv2.waitKey(1000)
+                    
                     break
         
         t+=1
