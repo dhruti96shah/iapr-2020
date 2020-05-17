@@ -6,9 +6,8 @@ def applyOp(a, b, op):
     if op == '*': return a * b 
     if op == '/': return a / b 
 
-# find precedence of operators in equation 
-def precedence(op): 
-      
+# find order of operators in equation 
+def order(op):     
     if op == '+' or op == '-': 
         return 1
     if op == '*' or op == '/': 
@@ -41,7 +40,7 @@ def evaluate(eqn):
         # element is an op
         else: 
             while (len(ops) != 0 and
-                precedence(ops[-1]) >= precedence(eqn[i])):            
+                order(ops[-1]) >= order(eqn[i])):            
                 val2 = values.pop() 
                 val1 = values.pop() 
                 op = ops.pop()   
