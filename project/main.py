@@ -31,7 +31,6 @@ def main(args):
     cap = cv2.VideoCapture('robot_parcours_1.avi')
     t = 0
     eqn = ""
-    eqn_list = []
     dict_op = {'plus':'+','div':'/','eq':'=','mult':'*','minus':'-'}
     res = 0
     digit_or_op = True
@@ -89,7 +88,6 @@ def main(args):
                             # cv2.waitKey(1000)
                             digit_or_op = False
                             eqn += " " + str(prediction)
-                            eqn_list.append(int(prediction))
                             cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
                             cv2.imshow('frame',_frame)
                             print("Predicted digit: ",prediction)#," Loss: ",loss)
@@ -101,7 +99,6 @@ def main(args):
                 digit_or_op = True
                 if op!='eq':
                     eqn += " " + str(dict_op[op])
-                    eqn_list.append(str(dict_op[op]))
                 print("Predicted operator: ",op)
                 # Skip the next two frames, so as not to interfere with digit classification
                 t+=1
