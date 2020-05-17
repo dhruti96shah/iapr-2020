@@ -3,6 +3,7 @@ from localization import *
 from digit_classification import *
 from operator_classification import *
 import numpy as np
+from evaluate_equation import *
 
 import warnings
 
@@ -19,15 +20,20 @@ def cli():
                         help='visualization')
 
 def main(args):
+    font = cv2.FONT_HERSHEY_SIMPLEX
     network = Net()
     network_state_dict = torch.load('./model.pth')
     network.load_state_dict(network_state_dict)
     network.eval()
+    
 
     arrow_locations = tip_tracking()
     cap = cv2.VideoCapture('robot_parcours_1.avi')
     t = 0
     eqn = ""
+    eqn_list = []
+    dict_op = {'plus':'+','div':'/','eq':'=','mult':'*','minus':'-'}
+    res = 0
     digit_or_op = True
 
     while(cap.isOpened()):
@@ -36,7 +42,8 @@ def main(args):
             break
         if t==0: #save the first frame
             first_frame = _frame
-
+            
+        cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.imshow('frame',_frame)
         cv2.waitKey(1000)
 
@@ -81,6 +88,10 @@ def main(args):
                             # cv2.imshow('frame',im_for_digit)
                             # cv2.waitKey(1000)
                             digit_or_op = False
+                            eqn += " " + str(prediction)
+                            eqn_list.append(int(prediction))
+                            cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                            cv2.imshow('frame',_frame)
                             print("Predicted digit: ",prediction)#," Loss: ",loss)
 
         # If operator to detect
@@ -88,17 +99,28 @@ def main(args):
             op, loss = operator_classify(img)
             if loss<1.5e-10:
                 digit_or_op = True
+                if op!='eq':
+                    eqn += " " + str(dict_op[op])
+                    eqn_list.append(str(dict_op[op]))
                 print("Predicted operator: ",op)
                 # Skip the next two frames, so as not to interfere with digit classification
                 t+=1
                 ret, _frame = cap.read()
+                cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
                 cv2.imshow('frame',_frame)
                 cv2.waitKey(1000)
                 t+=1
                 ret, _frame = cap.read()
+                cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
                 cv2.imshow('frame',_frame)
                 cv2.waitKey(1000)
                 if op=='eq':
+                    res = evaluate(eqn)
+                    eqn += " " + str(dict_op[op])
+                    cv2.putText(_frame,"Equation: " + eqn + " " + str(res),(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                    print(eqn + " " + str(res))
+                    cv2.imshow('frame',_frame)
+                    cv2.waitKey(1000)
                     break
         
         t+=1
