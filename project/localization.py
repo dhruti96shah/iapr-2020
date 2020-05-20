@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from skimage.morphology import disk, closing
+from skimage.color import rgb2hsv, hsv2rgb
+
 
 
 def tip_tracking():
@@ -76,6 +78,7 @@ def tip_tracking_2():
     cap = cv2.VideoCapture('/home/mahdi/IAPR/iapr-2020/data/project_data/robot_parcours_1.avi')
 
     k = 0
+    avg_brightness = []
     while(cap.isOpened()):
         if cv2.waitKey(100) & 0xFF == ord('q'):
             break
@@ -84,6 +87,19 @@ def tip_tracking_2():
             break
         k += 1
         frame = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
+        def illumination_invariance(im):
+            hsv_im = rgb2hsv(im)
+            temp = np.ones(hsv_im[:, :, 2].shape)
+            # 0.5958 is the mean of brightness for train video frames
+            hsv_im[:, :, 2] = np.minimum(hsv_im[:, :, 2] + (0.5958 - np.mean(hsv_im[:, :, 2])), temp)
+            avg_brightness.append(np.mean(hsv_im[:, :, 2]))
+            return hsv2rgb(hsv_im)
+        fig, ax = plt.subplots()
+        frame = illumination_invariance(frame)
+        # ax.imshow((frame))
+        # ax.axis('off')
+        # plt.show(block=True)
+
         frame2=frame.astype('float')
 
         frame3 = (frame2[:, :, 0] - frame2[:, :, 1]) + (frame2[:, :, 0] - frame2[:, :, 2])
@@ -97,14 +113,21 @@ def tip_tracking_2():
         not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
         argoman = argoman[not_color_outlier]
 
-        argoman2 = np.copy(argoman)
-        argoman3 = np.copy(argoman)
-
 
         frame3 *= 0
         frame3[argoman[:, 0], argoman[:, 1]] = 1
-        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-        ax.imshow(frame3, cmap='gray')
+        # used openning to remove small islands and find corresponding argoman and remove islands there as well
+        from skimage.morphology import disk, opening
+        frame4 = opening(frame3, disk(3))
+        args_opened = np.argwhere(frame4 != frame3)
+        np.in1d(argoman[:, 0], args_opened[:, 0])
+        argoman_opened = np.logical_and(np.in1d(argoman[:, 0], args_opened[:, 0]), np.in1d(argoman[:, 1], args_opened[:, 1]))        # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        argoman = argoman[~argoman_opened]
+        ax.imshow(frame4, cmap='gray')
+        # plt.show(block=True)
+
+        argoman2 = np.copy(argoman)
+        argoman3 = np.copy(argoman)
 
         from sklearn.decomposition import PCA
         pca = PCA(n_components=1)
@@ -121,7 +144,7 @@ def tip_tracking_2():
         ax.scatter(arg_right_arrow[1], arg_right_arrow[0], marker="o", s=50, c='y')
         arg_left_arrow = argoman2[np.argmax(arrow2[:,1]), :]
         ax.scatter(arg_left_arrow[1], arg_left_arrow[0], marker="o", s=50, c='y')
-        # plt.show()
+        plt.show(block=True)
 
         if k==1:
             from numpy import linalg as LA
@@ -155,8 +178,8 @@ def tip_tracking_2():
 
 
         cv2.imshow('frame', _frame)
-        cv2.waitKey(0)
-
+        cv2.waitKey(2)
+    print('mean avg_brightness = ', np.asarray(avg_brightness).mean())
     return arrow_tip_locations
 
 
