@@ -96,9 +96,9 @@ def tip_tracking_2():
             return hsv2rgb(hsv_im)
         fig, ax = plt.subplots()
         frame = illumination_invariance(frame)
-        # ax.imshow((frame))
+        ax.imshow((frame))
         # ax.axis('off')
-        # plt.show(block=True)
+        plt.show(block=True)
 
         frame2=frame.astype('float')
 
@@ -144,7 +144,7 @@ def tip_tracking_2():
         ax.scatter(arg_right_arrow[1], arg_right_arrow[0], marker="o", s=50, c='y')
         arg_left_arrow = argoman2[np.argmax(arrow2[:,1]), :]
         ax.scatter(arg_left_arrow[1], arg_left_arrow[0], marker="o", s=50, c='y')
-        plt.show(block=True)
+        # plt.show(block=True)
 
         if k==1:
             from numpy import linalg as LA
@@ -178,27 +178,50 @@ def tip_tracking_2():
 
 
         cv2.imshow('frame', _frame)
-        cv2.waitKey(2)
+        cv2.waitKey(10)
     print('mean avg_brightness = ', np.asarray(avg_brightness).mean())
     return arrow_tip_locations
 
 
 
 def tip_tracking_3(_frame):
-
     frame = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
-    frame2=frame.astype('float')
 
+    def illumination_invariance(im):
+        hsv_im = rgb2hsv(im)
+        temp = np.ones(hsv_im[:, :, 2].shape)
+        # 0.5958 is the mean of brightness for train video frames
+        hsv_im[:, :, 2] = np.minimum(hsv_im[:, :, 2] + (0.5958 - np.mean(hsv_im[:, :, 2])), temp)
+        return hsv2rgb(hsv_im)
+
+    fig, ax = plt.subplots()
+    frame = illumination_invariance(frame)
+
+    frame2 = frame.astype('float')
     frame3 = (frame2[:, :, 0] - frame2[:, :, 1]) + (frame2[:, :, 0] - frame2[:, :, 2])
-    argoman=np.transpose(np.asarray(np.unravel_index(np.argsort(frame3, axis=None)[::-1], frame3.shape))[:, :2000]) #pick 2000 points
+    argoman = np.transpose(
+        np.asarray(np.unravel_index(np.argsort(frame3, axis=None)[::-1], frame3.shape))[:, :2000])  # pick 2000 points
 
     #  remove pixel outliers
     mean = np.mean(argoman, axis=0)
     standard_deviation = np.std(argoman, axis=0)
     distance_from_mean = abs(argoman - mean)
     max_deviations = 2
-    not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
+    not_color_outlier = np.logical_and(distance_from_mean[:, 0] < max_deviations * standard_deviation[0],
+                                       distance_from_mean[:, 1] < max_deviations * standard_deviation[1])
     argoman = argoman[not_color_outlier]
+
+    frame3 *= 0
+    frame3[argoman[:, 0], argoman[:, 1]] = 1
+    # used openning to remove small islands and find corresponding argoman and remove islands there as well
+    from skimage.morphology import disk, opening
+    frame4 = opening(frame3, disk(3))
+    args_opened = np.argwhere(frame4 != frame3)
+    np.in1d(argoman[:, 0], args_opened[:, 0])
+    argoman_opened = np.logical_and(np.in1d(argoman[:, 0], args_opened[:, 0]), np.in1d(argoman[:, 1], args_opened[:,
+                                                                                                      1]))  # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    argoman = argoman[~argoman_opened]
+    ax.imshow(frame4, cmap='gray')
 
     from sklearn.decomposition import PCA
     pca = PCA(n_components=1)
