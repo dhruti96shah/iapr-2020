@@ -161,9 +161,29 @@ def tip_tracking_2():
 
 
 
+def tip_tracking_3(_frame):
 
+    frame = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
+    frame2=frame.astype('float')
 
+    frame3 = (frame2[:, :, 0] - frame2[:, :, 1]) + (frame2[:, :, 0] - frame2[:, :, 2])
+    argoman=np.transpose(np.asarray(np.unravel_index(np.argsort(frame3, axis=None)[::-1], frame3.shape))[:, :2000]) #pick 2000 points
 
+    #  remove pixel outliers
+    mean = np.mean(argoman, axis=0)
+    standard_deviation = np.std(argoman, axis=0)
+    distance_from_mean = abs(argoman - mean)
+    max_deviations = 2
+    not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
+    argoman = argoman[not_color_outlier]
+
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=1)
+    pca.fit(argoman)
+    arrow = pca.transform(argoman)
+    arg_tip_arrow = argoman[np.argmin(arrow), :]
+
+    return arg_tip_arrow
 
 
 

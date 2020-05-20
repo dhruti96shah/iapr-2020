@@ -27,33 +27,50 @@ def main(args):
     network.eval()
     
 
-    arrow_locations = tip_tracking()
+    # arrow_locations = tip_tracking_2()
     cap = cv2.VideoCapture('robot_parcours_1.avi')
     t = 0
     eqn = ""
     dict_op = {'plus':'+','div':'/','eq':'=','mult':'*','minus':'-'}
     res = 0
     digit_or_op = True
-
+    _traj_arrow_tip_locations = []
+    _traj_k = 0
     while(cap.isOpened()):
         ret, _frame = cap.read()
         if ret==False: #if video is over
             break
         if t==0: #save the first frame
             first_frame = _frame
-            
+        _traj_k+=1
+        arrow_loc = tip_tracking_3(_frame)
+        _traj_arrow_tip_locations.append(arrow_loc)
+        # draw linear trajectory
+        if _traj_k > 1:
+            # start_point = tuple(np.flip(arrow_tip_locations[-1]))
+            # end_point = tuple(np.flip(arrow_tip_locations[-2]))
+            # Black color in BGR
+            color = (0, 100, 255)
+            # Line thickness of 5 px
+            thickness = 5
+            for kk in range(_traj_k, 1, -1):
+                _frame = cv2.line(_frame, tuple(np.flip(_traj_arrow_tip_locations[-kk + 1])),
+                                  tuple(np.flip(_traj_arrow_tip_locations[-kk])), color, thickness)
+
+
         cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.imshow('frame',_frame)
         cv2.waitKey(1000)
 
         # Get the area around the arrow tip, from which the image is to be detected
-        arrow_loc = arrow_locations[t]
         x_min = max(arrow_loc[0]-40, 0)
         x_max = min(arrow_loc[0]+40, first_frame.shape[0])
         y_min = max(arrow_loc[1]-40,0)
         y_max = min(arrow_loc[1]+40, first_frame.shape[1])
         img = first_frame[x_min:x_max,y_min:y_max]
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+
 
         # If digit to detect
         if digit_or_op:
@@ -89,7 +106,7 @@ def main(args):
                             digit_or_op = False
                             eqn += " " + str(prediction)
                             cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
-                            cv2.imshow('frame',_frame)
+                            # cv2.imshow('frame',_frame)
                             print("Predicted digit: ",prediction)#," Loss: ",loss)
 
         # If operator to detect
@@ -104,13 +121,14 @@ def main(args):
                 t+=1
                 ret, _frame = cap.read()
                 cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
-                cv2.imshow('frame',_frame)
-                cv2.waitKey(1000)
+
+                # cv2.imshow('frame',_frame)
+                # cv2.waitKey(1000)
                 t+=1
                 ret, _frame = cap.read()
                 cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
-                cv2.imshow('frame',_frame)
-                cv2.waitKey(1000)
+                # cv2.imshow('frame',_frame)
+                # cv2.waitKey(1000)
                 if op=='eq':
                     res = evaluate(eqn)
                     eqn += " " + str(dict_op[op])
