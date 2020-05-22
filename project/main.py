@@ -4,7 +4,6 @@ from digit_classification import *
 from operator_classification import *
 import numpy as np
 from equation_evaluation import *
-
 import warnings
 
 warnings.simplefilter("ignore", UserWarning)
@@ -21,11 +20,6 @@ def cli():
 
 def main(args):
     font = cv2.FONT_HERSHEY_SIMPLEX
-    network = Net()
-    network_state_dict = torch.load('./model.pth')
-    network.load_state_dict(network_state_dict)
-    network.eval()
-    
 
     # arrow_locations = tip_tracking_2()
     cap = cv2.VideoCapture('robot_parcours_1.avi')
@@ -99,7 +93,7 @@ def main(args):
                         im_for_digit = cv2.morphologyEx(im_for_digit, cv2.MORPH_CLOSE, np.ones((3,3),np.uint8))
                         # cv2.imshow('frame',im_for_digit)
                         # cv2.waitKey(1000)
-                        prediction, loss = pred_digit(torch.tensor(im_for_digit/255).float().unsqueeze(0).unsqueeze(0), network,False)
+                        prediction, loss = pred_digit(torch.tensor(im_for_digit/255).float().unsqueeze(0).unsqueeze(0),False)
                         if stats[4]>90:
                             # cv2.imshow('frame',im_for_digit)
                             # cv2.waitKey(1000)
@@ -107,7 +101,7 @@ def main(args):
                             eqn += " " + str(prediction)
                             cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
                             # cv2.imshow('frame',_frame)
-                            print("Predicted digit: ",prediction)#," Loss: ",loss)
+                            print("Predicted digit: ",prediction," Loss: ",loss)
 
         # If operator to detect
         else:

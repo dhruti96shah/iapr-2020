@@ -10,6 +10,7 @@ import scipy.misc
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import shutil 
 
 
 class Net(nn.Module):
@@ -37,13 +38,13 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
     
-def train(network,epoch,train_loader,params):
+def train(network,optimizer,epoch,train_loader,params):
     train_losses = []
     train_counter = []
     test_losses = []
     test_counter = [i*len(train_loader.dataset) for i in range(params['n_epochs'] + 1)]    
     network.train()
-    optimizer = optim.SGD(network.parameters(), lr=params['learning_rate'],momentum=params['momentum'])
+#     optimizer = optim.SGD(network.parameters(), lr=params['learning_rate'],momentum=params['momentum'])
     for batch_idx, (data, target) in enumerate(train_loader):
         optimizer.zero_grad()
         output = network(data)
@@ -57,8 +58,13 @@ def train(network,epoch,train_loader,params):
             train_losses.append(loss.item())
             train_counter.append(
             (batch_idx*64) + ((epoch-1)*len(train_loader.dataset)))
-            torch.save(network.state_dict(), './model.pth')
-            torch.save(optimizer.state_dict(), './optimizer.pth')
+            checkpoint = {
+                'epoch': epoch + 1,
+                'state_dict': network.state_dict(),
+                'optimizer': optimizer.state_dict()
+            }
+            save_ckp(checkpoint, True)
+            
     
 def test(network,test_loader):
     test_losses = []
@@ -110,8 +116,25 @@ def predict (network,img):
     loss = output.data.max(1, keepdim=True)[0][0].item()
     return pred, loss
 
-def pred_digit(img,network,training_flag):
-    
+def load_ckp(checkpoint_fpath, model, optimizer):
+    checkpoint = torch.load(checkpoint_fpath)
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    torch.save(model.state_dict(), './model.pth')
+    torch.save(optimizer.state_dict(), './optimizer.pth')
+    return model, optimizer, checkpoint['epoch']
+
+def save_ckp(state, is_best):
+    f_path = './checkpoint.pt'
+    torch.save(state, f_path)
+    torch.save(network.state_dict(), './model.pth')
+    torch.save(optimizer.state_dict(), './optimizer.pth')
+    if is_best:
+        best_fpath = './best_model.pt'
+        shutil.copyfile(f_path, best_fpath)
+
+def pred_digit(img,training_flag):
+    ckp_path = './checkpoint.pt'
     # set CNN parameters
     params = {
         'n_epochs': 30,
@@ -125,19 +148,21 @@ def pred_digit(img,network,training_flag):
     
     torch.backends.cudnn.enabled = False
     torch.manual_seed(params['random_seed'])
-    
+    network = Net()
+    optimizer = optim.SGD(network.parameters(), lr=params['learning_rate'],momentum=params['momentum'])
     # train if needed
     if training_flag == True:
         # load mnist data for training
         train_loader, test_loader = load_mnist(params)
-        network = Net()
-        for epoch in range(1, params['n_epochs'] + 1):
-            train(network,epoch,train_loader,params)
+        # load checkpoints to continue training 
+        network, optimizer, start_epoch = load_ckp(ckp_path, network, optimizer)
+        for epoch in range(start_epoch, params['n_epochs'] + 1):
+            train(network,optimizer,epoch,train_loader,params)
             test(network, test_loader)
-    network = Net()
     #load trained CNN network
-    network.load_state_dict(torch.load("./model.pth"))
+    checkpoint = torch.load(ckp_path)  
+    network.load_state_dict(torch.load('./model.pth'))
     network.eval()
     prediction,loss = predict(network,img)
     
-    return prediction,loss
+    return  prediction,loss
