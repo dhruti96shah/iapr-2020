@@ -37,6 +37,30 @@ class Net(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         return output
+def load_mnist(params):
+    train_loader = torch.utils.data.DataLoader(torchvision.datasets.MNIST(params['mnist_path'], train=True, download=True,
+                             transform=torchvision.transforms.Compose([
+#                                  torchvision.transforms.Resize(params['size']),
+                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
+                              torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
+                               torchvision.transforms.ToTensor(),
+                               torchvision.transforms.Normalize(
+                                 (0.1307,), (0.3081,))
+                             ])), batch_size=params['batch_size_train'], shuffle=True)
+               
+    test_loader = torch.utils.data.DataLoader( torchvision.datasets.MNIST(params['mnist_path'], train=False, download=True,
+                             transform=torchvision.transforms.Compose([
+#                                  torchvision.transforms.Resize(params['size']),
+                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
+                              torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
+                               torchvision.transforms.ToTensor(),
+                               torchvision.transforms.Normalize(
+                                 (0.1307,), (0.3081,))
+                             ])), batch_size=params['batch_size_test'], shuffle=True)
+    return train_loader, test_loader
+
     
 def train(network,optimizer,epoch,train_loader,params):
     train_losses = []
@@ -63,7 +87,7 @@ def train(network,optimizer,epoch,train_loader,params):
                 'state_dict': network.state_dict(),
                 'optimizer': optimizer.state_dict()
             }
-            save_ckp(checkpoint, True)
+            save_ckp(checkpoint, network, optimizer, True)
             
     
 def test(network,test_loader):
@@ -82,32 +106,6 @@ def test(network,test_loader):
     print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
     test_loss, correct, len(test_loader.dataset),100. * correct / len(test_loader.dataset)))
     
-    
-    
-def load_mnist(params):
-    train_loader = torch.utils.data.DataLoader(torchvision.datasets.MNIST(params['mnist_path'], train=True, download=True,
-                             transform=torchvision.transforms.Compose([
-#                                  torchvision.transforms.Resize(params['size']),
-                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
-                              torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
-                               torchvision.transforms.ToTensor(),
-                               torchvision.transforms.Normalize(
-                                 (0.1307,), (0.3081,))
-                             ])), batch_size=params['batch_size_train'], shuffle=True)
-               
-    test_loader = torch.utils.data.DataLoader( torchvision.datasets.MNIST(params['mnist_path'], train=False, download=True,
-                             transform=torchvision.transforms.Compose([
-#                                  torchvision.transforms.Resize(params['size']),
-                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
-                              torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
-                               torchvision.transforms.ToTensor(),
-                               torchvision.transforms.Normalize(
-                                 (0.1307,), (0.3081,))
-                             ])), batch_size=params['batch_size_test'], shuffle=True)
-    return train_loader, test_loader
-
 
 def predict (network,img):
     with torch.no_grad():  
@@ -116,15 +114,14 @@ def predict (network,img):
     loss = output.data.max(1, keepdim=True)[0][0].item()
     return pred, loss
 
-def load_ckp(checkpoint_fpath, model, optimizer):
+def load_ckp(checkpoint_fpath, network, optimizer):
     checkpoint = torch.load(checkpoint_fpath)
-    model.load_state_dict(checkpoint['state_dict'])
+    network.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
-    torch.save(model.state_dict(), './model.pth')
-    torch.save(optimizer.state_dict(), './optimizer.pth')
-    return model, optimizer, checkpoint['epoch']
 
-def save_ckp(state, is_best):
+    return network, optimizer, checkpoint['epoch']
+
+def save_ckp(state, network, optimizer, is_best):
     f_path = './checkpoint.pt'
     torch.save(state, f_path)
     torch.save(network.state_dict(), './model.pth')
@@ -137,7 +134,7 @@ def pred_digit(img,training_flag):
     ckp_path = './checkpoint.pt'
     # set CNN parameters
     params = {
-        'n_epochs': 30,
+        'n_epochs': 35,
         'batch_size_train' : 64,
         'batch_size_test': 1000,
         'learning_rate' : 0.001,
@@ -160,7 +157,6 @@ def pred_digit(img,training_flag):
             train(network,optimizer,epoch,train_loader,params)
             test(network, test_loader)
     #load trained CNN network
-    checkpoint = torch.load(ckp_path)  
     network.load_state_dict(torch.load('./model.pth'))
     network.eval()
     prediction,loss = predict(network,img)
