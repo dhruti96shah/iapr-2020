@@ -1,7 +1,7 @@
 import argparse
 from localization import *
-from digit_classification import *
-# from cnn import *
+# from digit_classification import *
+from cnn import *
 from operator_classification import *
 import numpy as np
 from equation_evaluation import *
@@ -100,7 +100,7 @@ def main(args):
                         im_for_digit = cv2.morphologyEx(im_for_digit, cv2.MORPH_CLOSE, np.ones((3,3),np.uint8))
                         # cv2.imshow('frame',im_for_digit)
                         # cv2.waitKey(1000)
-                        prediction, loss = pred_digit(torch.tensor(im_for_digit/255).float().unsqueeze(0).unsqueeze(0), network)
+                        prediction, loss = pred_digit(torch.tensor(im_for_digit/255).float().unsqueeze(0).unsqueeze(0), network,False)
                         if stats[4]>90:
                             # cv2.imshow('frame',im_for_digit)
                             # cv2.waitKey(1000)

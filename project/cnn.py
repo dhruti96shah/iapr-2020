@@ -37,16 +37,16 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
     
-def train(model,epoch,train_loader,params):
+def train(network,epoch,train_loader,params):
     train_losses = []
     train_counter = []
     test_losses = []
     test_counter = [i*len(train_loader.dataset) for i in range(params['n_epochs'] + 1)]    
-    model.train()
-    optimizer = optim.SGD(model.parameters(), lr=params['learning_rate'],momentum=params['momentum'])
+    network.train()
+    optimizer = optim.SGD(network.parameters(), lr=params['learning_rate'],momentum=params['momentum'])
     for batch_idx, (data, target) in enumerate(train_loader):
         optimizer.zero_grad()
-        output = model(data)
+        output = network(data)
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -57,17 +57,17 @@ def train(model,epoch,train_loader,params):
             train_losses.append(loss.item())
             train_counter.append(
             (batch_idx*64) + ((epoch-1)*len(train_loader.dataset)))
-            torch.save(model.state_dict(), './model.pth')
+            torch.save(network.state_dict(), './model.pth')
             torch.save(optimizer.state_dict(), './optimizer.pth')
     
-def test(model,test_loader):
+def test(network,test_loader):
     test_losses = []
-    model.eval()
+    network.eval()
     test_loss = 0
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
-            output = model(data)
+            output = network(data)
             test_loss += F.nll_loss(output, target, size_average=False).item()
             pred = output.data.max(1, keepdim=True)[1]
             correct += pred.eq(target.data.view_as(pred)).sum()
@@ -103,33 +103,25 @@ def load_mnist(params):
     return train_loader, test_loader
 
 
-def predict (model,img):
+def predict (network,img):
     with torch.no_grad():  
-        trans = transforms.Compose([transforms.ToTensor()])
-        img_t = trans(img)
-        batch_t = torch.unsqueeze(img_t, 0)    
-        output = model(batch_t)
-        pred = output.data.max(1, keepdim=True)[1][0].item()
-        loss = output.data.max(1, keepdim=True)[0][0].item()
-        return pred, loss
+        output = network(img)
+    pred = output.data.max(1, keepdim=True)[1][0].item()
+    loss = output.data.max(1, keepdim=True)[0][0].item()
+    return pred, loss
 
-def pred_digit(img,model,training_flag):
+def pred_digit(img,network,training_flag):
     
-    assert training_flag== True
-    #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #img = np.expand_dims(img,axis=2) 
-
     # set CNN parameters
     params = {
-        'n_epochs': 15,
+        'n_epochs': 20,
         'batch_size_train' : 64,
         'batch_size_test': 1000,
         'learning_rate' : 0.001,
         'momentum': 0.5,
         'log_interval': 10,
         'random_seed': 1,
-        'mnist_path' : './data',
-        'size' : 80} 
+        'mnist_path' : './data'} 
     
     torch.backends.cudnn.enabled = False
     torch.manual_seed(params['random_seed'])
@@ -138,14 +130,14 @@ def pred_digit(img,model,training_flag):
     if training_flag == True:
         # load mnist data for training
         train_loader, test_loader = load_mnist(params)
-        model = Net()
+        network = Net()
         for epoch in range(1, params['n_epochs'] + 1):
-            train(model,epoch,train_loader,params)
-            test(model, test_loader)
-    model = Net()
-    #load trained CNN model
-    model.load_state_dict(torch.load("./model.pth"))
-    model.eval()
-    prediction,loss = predict(model,img)
+            train(network,epoch,train_loader,params)
+            test(network, test_loader)
+    network = Net()
+    #load trained CNN network
+    network.load_state_dict(torch.load("./model.pth"))
+    network.eval()
+    prediction,loss = predict(network,img)
     
     return prediction,loss
