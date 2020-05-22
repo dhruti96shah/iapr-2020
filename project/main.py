@@ -1,7 +1,6 @@
 import argparse
 from localization import *
-# from digit_classification import *
-from cnn import *
+from digit_classification import *
 from operator_classification import *
 import numpy as np
 from equation_evaluation import *
