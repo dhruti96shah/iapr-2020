@@ -82,8 +82,9 @@ def load_mnist(params):
     train_loader = torch.utils.data.DataLoader(torchvision.datasets.MNIST(params['mnist_path'], train=True, download=True,
                              transform=torchvision.transforms.Compose([
 #                                  torchvision.transforms.Resize(params['size']),
-                                 torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
+                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
                               torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))
@@ -92,8 +93,9 @@ def load_mnist(params):
     test_loader = torch.utils.data.DataLoader( torchvision.datasets.MNIST(params['mnist_path'], train=False, download=True,
                              transform=torchvision.transforms.Compose([
 #                                  torchvision.transforms.Resize(params['size']),
-                                 torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
+                                 #torchvision.transforms.RandomRotation(degrees=(-90,90),fill=(0,)),
                               torchvision.transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+                              torchvision.transforms.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.8, 1.2)),
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))
@@ -107,21 +109,22 @@ def predict (model,img):
         img_t = trans(img)
         batch_t = torch.unsqueeze(img_t, 0)    
         output = model(batch_t)
-        pred = output.data.max(1, keepdim=True)[1].item()
-        return pred
+        pred = output.data.max(1, keepdim=True)[1][0].item()
+        loss = output.data.max(1, keepdim=True)[0][0].item()
+        return pred, loss
 
 def pred_digit(img,model,training_flag):
     
-    assert training_flag== False
+    assert training_flag== True
     #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #img = np.expand_dims(img,axis=2) 
 
     # set CNN parameters
     params = {
-        'n_epochs': 10,
+        'n_epochs': 15,
         'batch_size_train' : 64,
         'batch_size_test': 1000,
-        'learning_rate' : 0.01,
+        'learning_rate' : 0.001,
         'momentum': 0.5,
         'log_interval': 10,
         'random_seed': 1,
@@ -143,6 +146,6 @@ def pred_digit(img,model,training_flag):
     #load trained CNN model
     model.load_state_dict(torch.load("./model.pth"))
     model.eval()
-    prediction = predict(model,img)
+    prediction,loss = predict(model,img)
     
-    return prediction
+    return prediction,loss
