@@ -98,27 +98,31 @@ def tip_tracking_2():
         frame = illumination_invariance(frame)
         ax.imshow((frame))
         # ax.axis('off')
-        plt.show(block=True)
+        # plt.show(block=True)
 
         frame2=frame.astype('float')
 
         frame3 = (frame2[:, :, 0] - frame2[:, :, 1]) + (frame2[:, :, 0] - frame2[:, :, 2])
         argoman=np.transpose(np.asarray(np.unravel_index(np.argsort(frame3, axis=None)[::-1], frame3.shape))[:, :2000]) #pick 2000 points
 
-        #  remove pixel outliers
-        mean = np.mean(argoman, axis=0)
-        standard_deviation = np.std(argoman, axis=0)
-        distance_from_mean = abs(argoman - mean)
-        max_deviations = 2
-        not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
-        argoman = argoman[not_color_outlier]
+        # #  remove pixel outliers
+        # mean = np.mean(argoman, axis=0)
+        # standard_deviation = np.std(argoman, axis=0)
+        # distance_from_mean = abs(argoman - mean)
+        # max_deviations = 2
+        # not_color_outlier = np.logical_and(distance_from_mean[:,0] < max_deviations * standard_deviation[0], distance_from_mean[:,1] < max_deviations * standard_deviation[1])
+        # argoman = argoman[not_color_outlier]
 
 
         frame3 *= 0
         frame3[argoman[:, 0], argoman[:, 1]] = 1
+        # from skimage.morphology import disk
+        # from skimage.filters import median
+        # frame3 = median(frame3, disk(3))
         # used openning to remove small islands and find corresponding argoman and remove islands there as well
-        from skimage.morphology import disk, opening
-        frame4 = opening(frame3, disk(3))
+        # from skimage.morphology import disk, opening
+        # frame4 = opening(frame3, disk(3))
+        frame4 = frame3
         args_opened = np.argwhere(frame4 != frame3)
         np.in1d(argoman[:, 0], args_opened[:, 0])
         argoman_opened = np.logical_and(np.in1d(argoman[:, 0], args_opened[:, 0]), np.in1d(argoman[:, 1], args_opened[:, 1]))        # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
@@ -141,9 +145,10 @@ def tip_tracking_2():
         pca2.fit(argoman2)
         arrow2 = pca2.transform(argoman2)
         arg_right_arrow = argoman2[np.argmin(arrow2[:,1]), :]
-        ax.scatter(arg_right_arrow[1], arg_right_arrow[0], marker="o", s=50, c='y')
+        # ax.scatter(arg_right_arrow[1], arg_right_arrow[0], marker="o", s=50, c='y')
         arg_left_arrow = argoman2[np.argmax(arrow2[:,1]), :]
-        ax.scatter(arg_left_arrow[1], arg_left_arrow[0], marker="o", s=50, c='y')
+        # ax.scatter(arg_left_arrow[1], arg_left_arrow[0], marker="o", s=50, c='y')
+        # plt.savefig("/home/mahdi/IAPR/iapr-2020/tmp/before_post_process/tip_localization_frame_{}.png".format(k))
         # plt.show(block=True)
 
         if k==1:
@@ -153,7 +158,7 @@ def tip_tracking_2():
 
         # Write some Text
         font = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (5, 25)
+        bottomLeftCornerOfText = (10, _frame.shape[0]-25)
         fontScale = 0.45
 
         fontColor = (255, 255, 255)
@@ -178,7 +183,8 @@ def tip_tracking_2():
 
 
         cv2.imshow('frame', _frame)
-        cv2.waitKey(10)
+        # cv2.imwrite("/home/mahdi/IAPR/iapr-2020/tmp/before_post_process/trajectory/tip_localization_frame_{}.png".format(k), frame)
+        cv2.waitKey(0)
     print('mean avg_brightness = ', np.asarray(avg_brightness).mean())
     return arrow_tip_locations
 

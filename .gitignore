@@ -2,3 +2,4 @@
 labs/.ipynb_checkpoints/
 .gitignore
 data/
+tmp/
