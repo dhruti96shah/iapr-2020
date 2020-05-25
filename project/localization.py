@@ -200,7 +200,7 @@ def tip_tracking_3(_frame):
         hsv_im[:, :, 2] = np.minimum(hsv_im[:, :, 2] + (0.5958 - np.mean(hsv_im[:, :, 2])), temp)
         return hsv2rgb(hsv_im)
 
-    fig, ax = plt.subplots()
+    # fig, ax = plt.subplots()
     frame = illumination_invariance(frame)
 
     frame2 = frame.astype('float')
@@ -227,7 +227,7 @@ def tip_tracking_3(_frame):
     argoman_opened = np.logical_and(np.in1d(argoman[:, 0], args_opened[:, 0]), np.in1d(argoman[:, 1], args_opened[:,
                                                                                                       1]))  # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     argoman = argoman[~argoman_opened]
-    ax.imshow(frame4, cmap='gray')
+    # ax.imshow(frame4, cmap='gray')
 
     from sklearn.decomposition import PCA
     pca = PCA(n_components=1)

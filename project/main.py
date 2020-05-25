@@ -17,12 +17,19 @@ def cli():
     )
     parser.add_argument('--vis', default=True,
                         help='visualization')
+    parser.add_argument('--input', default=None, type=str, help='input avi video directory')
+    parser.add_argument('--output', default=None, type=str, help='output avi video directory')
+    args = parser.parse_args()
+    return args
+
 
 def main(args):
+    writer = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'MJPG'), 2, (720, 480), True)
+
     font = cv2.FONT_HERSHEY_SIMPLEX
 
     # arrow_locations = tip_tracking_2()
-    cap = cv2.VideoCapture('robot_parcours_1.avi')
+    cap = cv2.VideoCapture(args.input)
     t = 0
     eqn = ""
     dict_op = {'plus':'+','div':'/','eq':'=','mult':'*','minus':'-'}
@@ -31,11 +38,13 @@ def main(args):
     _traj_arrow_tip_locations = []
     _traj_k = 0
     while(cap.isOpened()):
+        print('processing frame: {} '.format(t+1))
         ret, _frame = cap.read()
         if ret==False: #if video is over
             break
         if t==0: #save the first frame
             first_frame = _frame
+
         _traj_k+=1
         arrow_loc = tip_tracking_3(_frame)
         _traj_arrow_tip_locations.append(arrow_loc)
@@ -51,10 +60,10 @@ def main(args):
                 _frame = cv2.line(_frame, tuple(np.flip(_traj_arrow_tip_locations[-kk + 1])),
                                   tuple(np.flip(_traj_arrow_tip_locations[-kk])), color, thickness)
 
-
         cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        cv2.imshow('frame',_frame)
-        cv2.waitKey(1000)
+        writer.write(_frame)
+        # cv2.imshow('frame',_frame)
+        # cv2.waitKey(1000)
 
         # Get the area around the arrow tip, from which the image is to be detected
         x_min = max(arrow_loc[0]-40, 0)
@@ -63,8 +72,6 @@ def main(args):
         y_max = min(arrow_loc[1]+40, first_frame.shape[1])
         img = first_frame[x_min:x_max,y_min:y_max]
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-
 
         # If digit to detect
         if digit_or_op:
@@ -99,7 +106,7 @@ def main(args):
                             # cv2.waitKey(1000)
                             digit_or_op = False
                             eqn += " " + str(prediction)
-                            cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                            # cv2.putText(_frame,eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
                             # cv2.imshow('frame',_frame)
                             print("Predicted digit: ",prediction," Loss: ",loss)
 
@@ -112,31 +119,97 @@ def main(args):
                     eqn += " " + str(dict_op[op])
                 print("Predicted operator: ",op)
                 # Skip the next two frames, so as not to interfere with digit classification
+                # cv2.imwrite('/home/mahdi/IAPR/iapr-2020/tmp/final_frames/frame_{}.png'.format(t), _frame)
                 t+=1
                 ret, _frame = cap.read()
+
+                _traj_k += 1
+                arrow_loc = tip_tracking_3(_frame)
+                _traj_arrow_tip_locations.append(arrow_loc)
+                # draw linear trajectory
+                if _traj_k > 1:
+                    # start_point = tuple(np.flip(arrow_tip_locations[-1]))
+                    # end_point = tuple(np.flip(arrow_tip_locations[-2]))
+                    # Black color in BGR
+                    color = (0, 100, 255)
+                    # Line thickness of 5 px
+                    thickness = 5
+                    for kk in range(_traj_k, 1, -1):
+                        _frame = cv2.line(_frame, tuple(np.flip(_traj_arrow_tip_locations[-kk + 1])),
+                                          tuple(np.flip(_traj_arrow_tip_locations[-kk])), color, thickness)
+
                 cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                writer.write(_frame)
 
                 # cv2.imshow('frame',_frame)
                 # cv2.waitKey(1000)
+                # cv2.imwrite('/home/mahdi/IAPR/iapr-2020/tmp/final_frames/frame_{}.png'.format(t), _frame)
                 t+=1
                 ret, _frame = cap.read()
-                cv2.putText(_frame,"Equation: " + eqn,(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+                _traj_k += 1
+                arrow_loc = tip_tracking_3(_frame)
+                _traj_arrow_tip_locations.append(arrow_loc)
+                # draw linear trajectory
+                if _traj_k > 1:
+                    # start_point = tuple(np.flip(arrow_tip_locations[-1]))
+                    # end_point = tuple(np.flip(arrow_tip_locations[-2]))
+                    # Black color in BGR
+                    color = (0, 100, 255)
+                    # Line thickness of 5 px
+                    thickness = 5
+                    for kk in range(_traj_k, 1, -1):
+                        _frame = cv2.line(_frame, tuple(np.flip(_traj_arrow_tip_locations[-kk + 1])),
+                                          tuple(np.flip(_traj_arrow_tip_locations[-kk])), color, thickness)
+
+                cv2.putText(_frame, "Equation: " + eqn, (20, 400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                writer.write(_frame)
+
                 # cv2.imshow('frame',_frame)
                 # cv2.waitKey(1000)
                 if op=='eq':
                     res = evaluate(eqn)
                     eqn += " " + str(dict_op[op])
                     cv2.putText(_frame,"Equation: " + eqn + " " + str(res),(20,400), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                    writer.write(_frame)
                     print(eqn + " " + str(res))
-                    cv2.imshow('frame',_frame)
-                    cv2.waitKey(1000)
-                    
-                    break
-        
+                    # cv2.imshow('frame',_frame)
+                    # cv2.waitKey(100)
+                    # cv2.imwrite('/home/mahdi/IAPR/iapr-2020/tmp/final_frames/frame_{}.png'.format(t), _frame)
+
+                    while True:  # if video is over breaks
+                        t += 1
+                        ret, _frame = cap.read()
+                        if ret==False:
+                            break
+                        _traj_k += 1
+                        arrow_loc = tip_tracking_3(_frame)
+                        _traj_arrow_tip_locations.append(arrow_loc)
+                        # draw linear trajectory
+                        if _traj_k > 1:
+                            # start_point = tuple(np.flip(arrow_tip_locations[-1]))
+                            # end_point = tuple(np.flip(arrow_tip_locations[-2]))
+                            # Black color in BGR
+                            color = (0, 100, 255)
+                            # Line thickness of 5 px
+                            thickness = 5
+                            for kk in range(_traj_k, 1, -1):
+                                _frame = cv2.line(_frame, tuple(np.flip(_traj_arrow_tip_locations[-kk + 1])),
+                                                  tuple(np.flip(_traj_arrow_tip_locations[-kk])), color, thickness)
+                        cv2.putText(_frame, "Equation: " + eqn + " " + str(res), (20, 400), font, 1, (0, 0, 0), 2,
+                                    cv2.LINE_AA)
+                        # cv2.imwrite('/home/mahdi/IAPR/iapr-2020/tmp/final_frames/frame_{}.png'.format(t), _frame)
+                        writer.write(_frame)
+
+        if ret==False:
+            break
+        # cv2.imwrite('/home/mahdi/IAPR/iapr-2020/tmp/final_frames/frame_{}.png'.format(t), _frame)
         t+=1
     pass
 
 
 if __name__ == '__main__':
     args = cli()
+    # args.input = '/home/mahdi/IAPR/iapr-2020/tmp/input_dir/robot_parcours_1.avi'
+    # args.output = '/home/mahdi/IAPR/iapr-2020/tmp/output_dir/result.avi'
     main(args)
