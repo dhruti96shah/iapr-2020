@@ -131,6 +131,10 @@ def save_ckp(state, network, optimizer, is_best):
         shutil.copyfile(f_path, best_fpath)
 
 def pred_digit(img,training_flag):
+    
+   # make sure that there is no training during the demo
+    assert training_flag == False 
+    
     ckp_path = './checkpoint.pt'
     # set CNN parameters
     params = {
