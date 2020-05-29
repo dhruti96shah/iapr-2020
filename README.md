@@ -1,5 +1,22 @@
 # Image Analysis and Pattern Recognition
 
+### Robot Vision Project
+In  this  special  project,  our  task  was  toanalyse  the  behaviour of a  Lego© Mindstorm© robot in a predefined environment. The environment is a flat arena of  approximately  3  meters  by  3  meters  containing  visual  elements  such  as  different  mathematical  operators and handwritten digits with different colors. The exact position and orientation  of  these  elements  may  vary.  In  this  project,  we  use  recordings  of  the  environment  by  a  camera  mounted  above  the  arena  and  pointed  directly  at  the  arena,  such  that  the  plane  of  the  arena  is  parallel to the image plane of the camera.
+
+<p align="center">
+<img src="https://github.com/dhruti96shah/iapr-2020/blob/master/LogoMindStormRobot.png?raw=true "Lego© Mindstorm© EV3 robot"" width="900" height="300"/>
+</p>
+
+Our main task was to find the result of an equation based on a video sequence. The equation will be  indicated by a moving robot. The detailed scenario is defined as follows:  Several mathematical operators (multiplication, division, minus, plus, equal) are placed on the  table. The color of operators is blue.  Several handwritten digits (0 to 8) are placed on the table. Digits are always black.  From arrow on the top side of the robot will help you to localize it and detect it’s orientation. Each time the robot passes  above  an  operator or a digit, the symbol  located  below  the robot is added to the equation. For example the sequence “2” → “+” → “3” → “=” becomes “2+3=”.  The sequence always starts with a digit and ends with the operator “=”.  The  goal is, given a new video sequence, to retrieve the formula and its associated answer. The localization and classification should have been robust to robot as well as environment values orientation, brightness and color change. The input of the algorithm  was  a  “.avi”  video  sequence,  recorded  at  2  FPS. Our approach could  output a video sequence with the same frame rate, duration and resolution as the input video. Each  frame  (e.g.  frame  at time t) of the output video would contain the following information, printed on  the same frame:
+The current state of the formula at time t and robot trajectory from start to time t.
+
+One resultant performance of our pipeline is demonstrated bellow where given an input frame we could localize the arrow tip and output first. Then we classify the detected digits and operators in realtime and it prints the equation on the screen as shown.
+
+<p align="center">
+<img src="https://github.com/dhruti96shah/iapr-2020/blob/master/demo.gif" width="600" height="400"/>
+</p>
+
+
 ## Developers
 * [Mahdi Nobar][Mahdi]
 * Dhruti Shah
@@ -12,6 +29,8 @@
 [jpt]: https://people.epfl.ch/115534
 [Mahdi]: https://www.linkedin.com/in/mahdi-nobar/?originalSubdomain=ch
 [coursebook]: https://edu.epfl.ch/coursebook/en/image-analysis-and-pattern-recognition-EE-451
+
+
 
 ### Objective of this course
 Learn the basic methods of digital image analysis and pattern recognition:
@@ -89,19 +108,3 @@ We suggest two different Python editors, but many more are available:
 [jetbrains]: https://www.jetbrains.com/
 [pycharm-dl]: https://www.jetbrains.com/pycharm/download/
 [jetbrains-student]: https://www.jetbrains.com/student/
-
-### Robot Vision Project description
-In  this  special  project,  our  task  was  toanalyse  the  behaviour of a  Lego© Mindstorm© robot (see Fig. 1.a) in a predefined environment. The environment is a flat arena of  approximately  3  meters  by  3  meters  containing  visual  elements  such  as  different  mathematical  operators and handwritten digits with different colors (see figure bellow). The exact position and orientation  of  these  elements  may  vary.  In  this  project,  we  use  recordings  of  the  environment  by  a  camera  mounted  above  the  arena  and  pointed  directly  at  the  arena,  such  that  the  plane  of  the  arena  is  parallel to the image plane of the camera.
-
-![Alt text](https://github.com/dhruti96shah/iapr-2020/blob/master/LogoMindStormRobot.png?raw=true "Lego© Mindstorm© EV3 robot")
-
-.center[
-
-![My image](https://github.com/dhruti96shah/iapr-2020/blob/master/LogoMindStormRobot.png?raw=true)
-
-.caption[
-**Fig. 1:** Lego© Mindstorm© EV3 robot
-]
-
-]
-
