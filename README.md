@@ -89,3 +89,8 @@ We suggest two different Python editors, but many more are available:
 [jetbrains]: https://www.jetbrains.com/
 [pycharm-dl]: https://www.jetbrains.com/pycharm/download/
 [jetbrains-student]: https://www.jetbrains.com/student/
+
+### Robot Vision Project description
+In  this  special  project,  our  task  was  toanalyse  the  behaviour of a  Lego© Mindstorm© robot (see Fig. 1.a) in a predefined environment. The environment is a flat arena of  approximately  3  meters  by  3  meters  containing  visual  elements  such  as  different  mathematical  operators and handwritten digits with different colors (see figure bellow). The exact position and orientation  of  these  elements  may  vary.  In  this  project,  we  use  recordings  of  the  environment  by  a  camera  mounted  above  the  arena  and  pointed  directly  at  the  arena,  such  that  the  plane  of  the  arena  is  parallel to the image plane of the camera.
+![Alt text](https://github.com/dhruti96shah/iapr-2020/blob/master/LogoMindStormRobot.png?raw=true "Lego© Mindstorm© EV3 robot")
+
